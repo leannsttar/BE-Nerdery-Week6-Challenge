@@ -2,6 +2,7 @@ import express, { Application, Request } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { ApolloServer } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 import { typeDefs, resolvers } from './resolvers/products.resolver';
 import { validateApiKeyFromHeader } from './middlewares/api-key.middleware';
 import cookieParser from 'cookie-parser';
@@ -31,6 +32,16 @@ async function start() {
     context: async ({ req }: { req: Request }) => {
       // Validate api key from headers
       const apiKey = await validateApiKeyFromHeader(req);
+
+      if (!apiKey) {
+        throw new GraphQLError('Missing or invalid API key', {
+        extensions: {
+          code: 'UNAUTHENTICATED',
+          http: { status: 401 }
+        }
+      })
+      }
+
       return { apiKey };
     },
   });

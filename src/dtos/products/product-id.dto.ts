@@ -1,6 +1,6 @@
 import { IsUUID, IsNotEmpty } from 'class-validator';
 
-export class GetProductDto {
+export class ProductIdDto {
   @IsUUID()
   @IsNotEmpty()
   id!: string;
