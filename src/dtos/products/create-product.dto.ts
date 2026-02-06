@@ -18,7 +18,6 @@ export class CreateProductDTO {
   @IsNotEmpty()
   price!: number
 
-  @IsUrl()
   @IsOptional()
   imageUrl?: string
 }

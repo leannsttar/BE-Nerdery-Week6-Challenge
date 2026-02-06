@@ -1,4 +1,3 @@
-import { gql } from "apollo-server-express";
 import { ProductService } from "../services/products.service";
 import { validateDto } from "../utils/validations";
 import { ProductIdDto } from "../dtos/products/product-id.dto";
@@ -6,56 +5,14 @@ import { CreateProductDTO } from "../dtos/products/create-product.dto";
 import { UpdateProductDTO } from "../dtos/products/update-product.dto";
 import { GraphQLError } from "graphql";
 
-// GraphQL typeDefs
-export const typeDefs = gql`
-  type Product {
-    id: ID!
-    name: String!
-    description: String
-    stock: Int!
-    price: Float!
-    isActive: Boolean!
-    imageUrl: String
-    clientId: ID!
-    createdAt: String
-    updatedAt: String
-  }
+import { GraphQLContext } from "../interfaces/context.interface";
+import { GetProductByIdArgs, CreateProductArgs, UpdateProductArgs } from "../interfaces/product-args.interface";
 
-  input CreateProductInput {
-    name: String!
-    description: String
-    stock: Int!
-    price: Float!
-    imageUrl: String
-  }
+import { Product } from "@prisma/client";
 
-  input UpdateProductInput {
-    id: ID!
-    name: String
-    description: String
-    stock: Int
-    price: Float
-    imageUrl: String
-  }
-
-  type Query {
-    getProductById(id: ID!): Product
-    getAllProducts: [Product!]!
-  }
-
-  type Mutation {
-    createProduct(input: CreateProductInput!): Product!
-    updateProduct(input: UpdateProductInput!): Product!
-    deleteProduct(id: ID!): ID!
-    disableProduct(id: ID!): Product!
-    enableProduct(id: ID!): Product!
-  }
-`;
-
-// Resolvers
-export const resolvers = {
+export const productResolvers = {
   Query: {
-    async getProductById(_: any, args: { id: string }, context: any) {
+    async getProductById(_: unknown, args: GetProductByIdArgs, context: GraphQLContext): Promise<Product> {
       const { clientId } = context.apiKey;
 
       await validateDto(ProductIdDto, { id: args.id } )
@@ -77,7 +34,7 @@ export const resolvers = {
       return product;
     },
 
-    async getAllProducts(_: any, __: any, context: any) {
+    async getAllProducts(_: unknown, __: unknown, context: GraphQLContext): Promise<Product[]> {
 
       const { clientId } = context.apiKey;
 
@@ -85,7 +42,7 @@ export const resolvers = {
     },
   },
   Mutation: {
-    async createProduct(_: any, args: {input: any}, context: any) {
+    async createProduct(_: unknown, args: CreateProductArgs, context: GraphQLContext):Promise<Product> {
       const { clientId } = context.apiKey;
 
       const validatedData = await validateDto(CreateProductDTO, args.input)
@@ -101,7 +58,7 @@ export const resolvers = {
       return product
 
     },
-      async updateProduct(_: any, args: {input: any}, context: any) {
+      async updateProduct(_: unknown, args: UpdateProductArgs, context: GraphQLContext):  Promise<Product> {
         const { clientId } = context.apiKey;
 
         const validatedData = await validateDto(UpdateProductDTO, args.input)
@@ -117,7 +74,7 @@ export const resolvers = {
         return updatedProduct
       },
 
-    async deleteProduct(_: any, args: {id: string}, context: any) {
+    async deleteProduct(_: unknown, args: GetProductByIdArgs, context: GraphQLContext): Promise<string> {
       const { clientId } = context.apiKey;
 
       await validateDto(ProductIdDto, { id: args.id } )
@@ -129,7 +86,7 @@ export const resolvers = {
 
       return product.id;
     },
-    async disableProduct(_: any, args: {id: string}, context: any) {
+    async disableProduct(_: unknown, args: GetProductByIdArgs, context: GraphQLContext): Promise<Product> {
       const { clientId } = context.apiKey;
 
       await validateDto(ProductIdDto, { id: args.id })
@@ -142,7 +99,7 @@ export const resolvers = {
 
       return product
     },
-    async enableProduct(_: any, args: {id: string}, context: any) {
+    async enableProduct(_: unknown, args: GetProductByIdArgs, context: GraphQLContext): Promise<Product> {
       const { clientId } = context.apiKey;
 
       await validateDto(ProductIdDto, { id: args.id })
