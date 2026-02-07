@@ -1,13 +1,10 @@
-import { GraphQLError } from "graphql";
 import prisma from "../prisma";
+import { Prisma } from "@prisma/client";
+
+import { CreateProductData, UpdateProductData } from "../interfaces/products/product-service.interface";
+import { notFound, alreadyExists } from "../errors/domain-errors";
 
 export class ProductService {
-  //Not used
-  // static async getById(id: string) {
-  //   return prisma.product.findUnique({
-  //     where: { id },
-  //   });
-  // }
 
   static async getByIdAndClient(id: string, clientId: string) {
     return prisma.product.findFirst({
@@ -22,16 +19,7 @@ export class ProductService {
     });
   }
 
-  static async create(
-    clientId: string,
-    data: {
-      name: string;
-      description?: string;
-      stock: number;
-      price: number;
-      imageUrl?: string;
-    },
-  ) {
+  static async create(clientId: string, data: CreateProductData) {
     const existingProduct = await prisma.product.findFirst({
       where: {
         clientId: clientId,
@@ -40,12 +28,7 @@ export class ProductService {
     });
 
     if (existingProduct) {
-      throw new GraphQLError("Resource already exists", {
-        extensions: {
-          code: "ALREADY_EXISTS",
-          http: { status: 409 }
-        }
-      })
+      throw alreadyExists("Product");
     }
 
     return prisma.product.create({
@@ -56,49 +39,62 @@ export class ProductService {
     });
   }
 
-  static async update(
-    id: string,
-    clientId: string,
-    data: {
-      name?: string;
-      description?: string;
-      stock?: number;
-      price?: number;
-      imageUrl?: string;
-      isActive?: boolean;
-    },
-  ) {
-    // verify product belongs to the client
-    const product = await this.getByIdAndClient(id, clientId);
-    if (!product) {
-      throw new GraphQLError("Resource not found", {
-        extensions: {
-          code: "NOT_FOUND",
-          http: { status: 404 }
-        }
-      })
+  static async update(id: string, clientId: string, data: UpdateProductData) {
+    try {
+      return await prisma.product.update({
+        where: { 
+          id,
+          clientId,
+        },
+        data,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw notFound("Product");
+      }
+      throw error;
     }
-
-    return prisma.product.update({
-      where: { id },
-      data,
-    });
   }
 
   static async delete(id: string, clientId: string) {
-    // verify
-    const product = await this.getByIdAndClient(id, clientId);
-    if (!product) {
-      throw new GraphQLError("Resource not found", {
-        extensions: {
-          code: "NOT_FOUND",
-          http: { status: 404 }
-        }
-      })
+    try {
+      return await prisma.product.delete({
+        where: { 
+          id,
+          clientId,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw notFound("Product");
+      }
+      throw error;
     }
-
-    return prisma.product.delete({
-      where: { id },
-    });
   }
+
+  private static async toggleActive(id: string, clientId: string, isActive: boolean) {
+    try {
+      return await prisma.product.update({
+        where: { 
+          id,
+          clientId,
+        },
+        data: { isActive },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw notFound("Product");
+      }
+      throw error;
+    }
+  }
+
+  static async disable(id: string, clientId: string) {
+    return this.toggleActive(id, clientId, false);
+  }
+
+  static async enable(id: string, clientId: string) {
+    return this.toggleActive(id, clientId, true);
+  }
+
 }

@@ -5,23 +5,22 @@ export class UpdateProductDTO {
     @IsNotEmpty()
     id!: string
 
-      @IsString()
-      @IsOptional()
-      name!: string
+    @IsString()
+    @IsOptional()
+    name?: string
     
-      @IsString()
-      @IsOptional()
-      description?: string
+    @IsString()
+    @IsOptional()
+    description?: string
     
-      @IsNumber()
-      @IsOptional()
-      stock!: number
+    @IsNumber()
+     @IsOptional()
+    stock?: number
     
-      @IsNumber()
-      @IsOptional()
-      price!: number
+    @IsNumber()
+    @IsOptional()
+    price?: number
     
-      @IsUrl()
-      @IsOptional()
-      imageUrl?: string
+    @IsOptional()
+    imageUrl?: string
 }

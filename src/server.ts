@@ -3,12 +3,16 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { ApolloServer } from 'apollo-server-express';
 import { GraphQLError } from 'graphql';
-import { productTypeDefs } from './graphql/product.typeDefs';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { applyMiddleware } from 'graphql-middleware';
+
+import { productTypeDefs } from './graphql/product.type-defs';
 import { productResolvers } from './resolvers/products.resolver';
-import { uploadTypeDefs } from './graphql/upload.typeDefs';
+import { uploadTypeDefs } from './graphql/upload.type-defs';
 import { uploadResolvers } from './resolvers/upload.resolver';
 import { validateApiKeyFromHeader } from './middlewares/api-key.middleware';
-import cookieParser from 'cookie-parser';
+import { errorMiddleware } from './middlewares/error-handler.middleware';
+
 import { ApiKeyService } from './services/api-key.service';
 
 import { GraphQLContext } from './interfaces/context.interface';
@@ -29,10 +33,16 @@ async function start() {
     return res.json({ key: apiKey.key, expiration: apiKey.expiration });
   });
 
+  const schema = makeExecutableSchema({
+      typeDefs: [productTypeDefs, uploadTypeDefs],
+      resolvers: [productResolvers, uploadResolvers],
+  });
+
+  const schemaWithMiddleware = applyMiddleware(schema, errorMiddleware);
+
   // GraphQL server
   const server = new ApolloServer({
-    typeDefs: [productTypeDefs, uploadTypeDefs],
-    resolvers: [productResolvers, uploadResolvers],
+    schema: schemaWithMiddleware,
     context: async ({ req }: { req: Request }): Promise<GraphQLContext> => {
       // Validate api key from headers
       const apiKey = await validateApiKeyFromHeader(req);

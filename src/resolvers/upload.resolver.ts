@@ -1,10 +1,9 @@
-// resolvers/upload.resolver.ts
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, bucketName } from "../config/s3.config";
 import { v4 as uuidv4 } from 'uuid';
 
-import { GetPresignedUrlArgs, PresignedUrlResponse } from "../interfaces/upload.interface";
+import { GetPresignedUrlArgs, PresignedUrlResponse } from "../interfaces/uploads/upload-resolver.interface";
 
 export const uploadResolvers = {
   Mutation: {
