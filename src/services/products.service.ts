@@ -1,7 +1,7 @@
 import prisma from "../prisma";
 import { Prisma } from "@prisma/client";
 
-import { CreateProductData, UpdateProductData } from "../interfaces/products/product-service.interface";
+import { CreateProductData, UpdateProductData } from "../interfaces/products/product.interface";
 import { notFound, alreadyExists } from "../errors/domain-errors";
 
 export class ProductService {
@@ -20,23 +20,19 @@ export class ProductService {
   }
 
   static async create(clientId: string, data: CreateProductData) {
-    const existingProduct = await prisma.product.findFirst({
-      where: {
-        clientId: clientId,
-        name: data.name,
-      },
-    });
-
-    if (existingProduct) {
-      throw alreadyExists("Product");
+    try {
+      return await prisma.product.create({
+        data: {
+          clientId,
+          ...data,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw alreadyExists("Product");
+      }
+      throw error;
     }
-
-    return prisma.product.create({
-      data: {
-        clientId,
-        ...data,
-      },
-    });
   }
 
   static async update(id: string, clientId: string, data: UpdateProductData) {

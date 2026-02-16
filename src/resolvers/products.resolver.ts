@@ -6,27 +6,23 @@ import { UpdateProductDTO } from "../dtos/products/update-product.dto";
 import { notFound } from "../errors/domain-errors";
 
 import { GraphQLContext } from "../interfaces/context.interface";
-import {
-  GetProductByIdArgs,
-  CreateProductArgs,
-  UpdateProductArgs,
-} from "../interfaces/products/product-resolver.interface";
+import { CreateProductData, UpdateProductData } from "../interfaces/products/product.interface";
 
 import { Product } from "@prisma/client";
 
-import { bucketName, bucketRegion } from "../config/s3.config";
+import { StorageService } from "../services/storage.service";
 
 export const productResolvers = {
   Query: {
     async getProductById(
       _: unknown,
-      args: GetProductByIdArgs,
+      { id }: { id: string },
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id: args.id });
+      await validateDto(ProductIdDto, { id });
 
-      const product = await ProductService.getByIdAndClient(args.id, clientId);
+      const product = await ProductService.getByIdAndClient(id, clientId);
 
       if (!product) {
         throw notFound("Product");
@@ -48,22 +44,22 @@ export const productResolvers = {
   Mutation: {
     async createProduct(
       _: unknown,
-      args: CreateProductArgs,
+      { input }: { input: CreateProductData },
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      const validatedData = await validateDto(CreateProductDTO, args.input);
+      const validatedData = await validateDto(CreateProductDTO, input);
 
       return ProductService.create(clientId, validatedData);
     },
 
     async updateProduct(
       _: unknown,
-      args: UpdateProductArgs,
+      { input }: { input: UpdateProductData },
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      const validatedData = await validateDto(UpdateProductDTO, args.input);
+      const validatedData = await validateDto(UpdateProductDTO, input);
       const { id, ...updateData } = validatedData;
 
       return ProductService.update(id, clientId, updateData);
@@ -71,47 +67,42 @@ export const productResolvers = {
 
     async deleteProduct(
       _: unknown,
-      args: GetProductByIdArgs,
+      { id }: { id: string },
       context: GraphQLContext,
     ): Promise<string> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id: args.id });
+      await validateDto(ProductIdDto, { id });
 
-      const product = await ProductService.delete(args.id, clientId);
+      const product = await ProductService.delete(id, clientId);
       return product.id;
     },
 
     async disableProduct(
       _: unknown,
-      args: GetProductByIdArgs,
+      { id }: { id: string },
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id: args.id });
+      await validateDto(ProductIdDto, { id });
 
-      return ProductService.disable(args.id, clientId);
+      return ProductService.disable(id, clientId);
     },
 
     async enableProduct(
       _: unknown,
-      args: GetProductByIdArgs,
+      { id }: { id: string },
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id: args.id });
+      await validateDto(ProductIdDto, { id });
 
-      return ProductService.enable(args.id, clientId);
+      return ProductService.enable(id, clientId);
     },
   },
 
   Product: {
     imageUrl: (parent: any) => {
-      const key = parent.imageUrl;
-
-      if (!key) return null;
-      if (key.startsWith("http")) return key;
-
-      return `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${key}`;
+      return StorageService.getPublicUrl(parent.imageUrl);
     },
   },
 };

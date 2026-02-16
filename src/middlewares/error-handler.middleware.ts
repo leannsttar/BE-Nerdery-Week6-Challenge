@@ -1,12 +1,13 @@
-import { GraphQLError } from "graphql";
+import { GraphQLError, GraphQLResolveInfo, GraphQLFieldResolver } from "graphql";
 import { AppError } from "../errors/domain-errors";
+import { GraphQLContext } from "../interfaces/context.interface";
 
 export const errorMiddleware = async (
-  resolve: any,
+  resolve: GraphQLFieldResolver<any, GraphQLContext>,
   root: any,
   args: any,
-  context: any,
-  info: any,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo,
 ) => {
   try {
     return await resolve(root, args, context, info);
