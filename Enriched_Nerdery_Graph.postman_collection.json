@@ -1,0 +1,286 @@
+{
+  "info": {
+    "_postman_id": "f1c897e5-5010-4356-9b99-72b466d5dff5",
+    "name": "Nerdery Graph API (Clean)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Auth - Get API Key",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/key/{{clientId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "key", "{{clientId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Products - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation CreateNewProduct($input: CreateProductInput!) {\r\n  createProduct(input: $input) {\r\n    id\r\n    name\r\n    description\r\n    price\r\n    stock\r\n    imageUrl\r\n    createdAt\r\n  }\r\n}",
+            "variables": "{\r\n  \"input\": {\r\n    \"name\": \"Producto Demo\",\r\n    \"description\": \"Creado desde Postman\",\r\n    \"price\": 45.30,\r\n    \"stock\": 120,\r\n    \"imageUrl\": \"{{imageKey}}\"\r\n  }\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Uploads - Get Presigned URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation GetPresignedUrl($filename: String!, $filetype: String!) {\r\n    getPresignedUrl(filename: $filename, filetype: $filetype) {\r\n        uploadUrl\r\n        key\r\n    }\r\n}",
+            "variables": "{\r\n  \"filename\": \"imagen-prueba.png\",\r\n  \"filetype\": \"image/png\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Uploads - Put Image to S3",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "image/png",
+            "type": "text",
+            "description": "Debe coincidir con el filetype solicitado"
+          }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {}
+        },
+        "url": {
+          "raw": "{{uploadUrl}}",
+          "host": ["{{uploadUrl}}"]
+        },
+        "description": "Pega aqui la URL larga que recibiste en el paso anterior y selecciona Binary en el Body"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Products - Get By ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query ($productId: ID!) {\r\n  getProductById(id: $productId) {\r\n    id\r\n    name\r\n    price\r\n    stock\r\n    imageUrl\r\n    clientId\r\n  }\r\n}",
+            "variables": "{\r\n\t\"productId\": \"{{productId}}\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Products - Get All",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query ($productId: ID!) {\r\n  getProductById(id: $productId) {\r\n    id\r\n    name\r\n    price\r\n    stock\r\n    imageUrl\r\n    clientId\r\n  }\r\n}",
+            "variables": "{\r\n\t\"productId\": \"{{productId}}\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Products - Update",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation UpdateMyProduct($input: UpdateProductInput!) {\r\n  updateProduct(input: $input) {\r\n    id\r\n    name\r\n    price\r\n    stock\r\n    description\r\n    imageUrl\r\n    updatedAt\r\n  }\r\n}",
+            "variables": "{\r\n  \"input\": {\r\n    \"id\": \"{{productId}}\",\r\n    \"description\": \"Updated description\",\r\n    \"price\": 110.00,\r\n    \"stock\": 221\r\n  }\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Products - Disable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation DisableMyProduct($productId: ID!) {\r\n  disableProduct(id: $productId) {\r\n    name,\r\n    isActive\r\n  }\r\n}",
+            "variables": "{\r\n\t\"productId\": \"{{productId}}\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Products - Enable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation EnableMyProduct($productId: ID!) {\r\n  enableProduct(id: $productId) {\r\n    name,\r\n    isActive\r\n  }\r\n}",
+            "variables": "{\r\n\t\"productId\": \"{{productId}}\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. Products - Delete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation DeleteMyProduct($productId: ID!) {\r\n  deleteProduct(id: $productId)\r\n}",
+            "variables": "{\r\n\t\"productId\": \"{{productId}}\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/graphql",
+          "host": ["{{baseUrl}}"],
+          "path": ["graphql"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "clientId",
+      "value": "clientA@example.com",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uploadUrl",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "imageKey",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

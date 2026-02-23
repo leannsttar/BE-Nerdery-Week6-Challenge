@@ -25,6 +25,8 @@ model Product {
   client      Client   @relation(fields: [clientId], references: [id])
   name        String   @map("name")
   description String?  @map("description")
+  imageUrl    String?  @map("image_url")
+  isActive    Boolean  @default(true) @map("is_active")
   stock       Int      @default(0) @map("stock")
   price       Float    @map("price")
   createdAt   DateTime @default(now()) @map("created_at")
