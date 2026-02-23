@@ -1,19 +1,45 @@
-export class AppError extends Error {
+import { GraphQLError } from "graphql";
+
+export class AppError extends GraphQLError {
   constructor(
     message: string,
     public code: string = "INTERNAL_SERVER_ERROR",
-    public statusCode: number = 500
+    public statusCode: number = 500,
   ) {
-    super(message);
+    super(message, {
+      extensions: {
+        code,
+        http: { status: statusCode },
+      },
+    });
     this.name = "AppError";
   }
 }
 
-export const notFound = (resource: string = "Resource") => 
-  new AppError(`${resource} not found`, "NOT_FOUND", 404);
+export class AppErrorFactory {
+  constructor(private resource: string = "Resource") {}
 
-export const alreadyExists = (resource: string = "Resource") => 
-  new AppError(`${resource} already exists`, "ALREADY_EXISTS", 409);
+  notFound() {
+    return new AppError(`${this.resource} not found`, "NOT_FOUND", 404);
+  }
 
-export const badRequest = (message: string) => 
-  new AppError(message, "BAD_REQUEST", 400);
+  alreadyExists() {
+    return new AppError(
+      `${this.resource} already exists`,
+      "ALREADY_EXISTS",
+      409,
+    );
+  }
+
+  unauthorized() {
+    return new AppError(`${this.resource} unauthorized`, "UNAUTHORIZED", 401);
+  }
+
+  badRequest(message?: string) {
+    return new AppError(
+      message ?? `${this.resource} bad request`,
+      "BAD_REQUEST",
+      400,
+    );
+  }
+}

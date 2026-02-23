@@ -1,11 +1,10 @@
 import prisma from "../prisma";
-import { Prisma } from "@prisma/client";
 
-import { CreateProductData, UpdateProductData } from "../interfaces/products/product.interface";
-import { notFound, alreadyExists } from "../errors/domain-errors";
-
+import {
+  CreateProductData,
+  UpdateProductData,
+} from "../interfaces/products/product.interface";
 export class ProductService {
-
   static async getByIdAndClient(id: string, clientId: string) {
     return prisma.product.findFirst({
       where: { id, clientId },
@@ -20,69 +19,45 @@ export class ProductService {
   }
 
   static async create(clientId: string, data: CreateProductData) {
-    try {
-      return await prisma.product.create({
-        data: {
-          clientId,
-          ...data,
-        },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw alreadyExists("Product");
-      }
-      throw error;
-    }
+    return prisma.product.create({
+      data: {
+        clientId,
+        ...data,
+      },
+    });
   }
 
   static async update(id: string, clientId: string, data: UpdateProductData) {
-    try {
-      return await prisma.product.update({
-        where: { 
-          id,
-          clientId,
-        },
-        data,
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw notFound("Product");
-      }
-      throw error;
-    }
+    return prisma.product.update({
+      where: {
+        id,
+        clientId,
+      },
+      data,
+    });
   }
 
   static async delete(id: string, clientId: string) {
-    try {
-      return await prisma.product.delete({
-        where: { 
-          id,
-          clientId,
-        },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw notFound("Product");
-      }
-      throw error;
-    }
+    return prisma.product.delete({
+      where: {
+        id,
+        clientId,
+      },
+    });
   }
 
-  private static async toggleActive(id: string, clientId: string, isActive: boolean) {
-    try {
-      return await prisma.product.update({
-        where: { 
-          id,
-          clientId,
-        },
-        data: { isActive },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw notFound("Product");
-      }
-      throw error;
-    }
+  private static async toggleActive(
+    id: string,
+    clientId: string,
+    isActive: boolean,
+  ) {
+    return prisma.product.update({
+      where: {
+        id,
+        clientId,
+      },
+      data: { isActive },
+    });
   }
 
   static async disable(id: string, clientId: string) {
@@ -92,5 +67,4 @@ export class ProductService {
   static async enable(id: string, clientId: string) {
     return this.toggleActive(id, clientId, true);
   }
-
 }

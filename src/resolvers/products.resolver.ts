@@ -1,12 +1,17 @@
 import { ProductService } from "../services/products.service";
 import { validateDto } from "../utils/validations";
-import { ProductIdDto } from "../dtos/products/product-id.dto";
+import { IdDto } from "../dtos/products/id.dto";
 import { CreateProductDTO } from "../dtos/products/create-product.dto";
 import { UpdateProductDTO } from "../dtos/products/update-product.dto";
-import { notFound } from "../errors/domain-errors";
+import { AppErrorFactory } from "../errors/domain-errors";
+
+const productError = new AppErrorFactory("Product");
 
 import { GraphQLContext } from "../interfaces/context.interface";
-import { CreateProductData, UpdateProductData } from "../interfaces/products/product.interface";
+import {
+  CreateProductData,
+  UpdateProductData,
+} from "../interfaces/products/product.interface";
 
 import { Product } from "@prisma/client";
 
@@ -20,12 +25,12 @@ export const productResolvers = {
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id });
+      await validateDto(IdDto, { id });
 
       const product = await ProductService.getByIdAndClient(id, clientId);
 
       if (!product) {
-        throw notFound("Product");
+        throw productError.notFound();
       }
 
       return product;
@@ -69,12 +74,11 @@ export const productResolvers = {
       _: unknown,
       { id }: { id: string },
       context: GraphQLContext,
-    ): Promise<string> {
+    ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id });
+      await validateDto(IdDto, { id });
 
-      const product = await ProductService.delete(id, clientId);
-      return product.id;
+      return ProductService.delete(id, clientId);
     },
 
     async disableProduct(
@@ -83,7 +87,7 @@ export const productResolvers = {
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id });
+      await validateDto(IdDto, { id });
 
       return ProductService.disable(id, clientId);
     },
@@ -94,7 +98,7 @@ export const productResolvers = {
       context: GraphQLContext,
     ): Promise<Product> {
       const { clientId } = context.apiKey;
-      await validateDto(ProductIdDto, { id });
+      await validateDto(IdDto, { id });
 
       return ProductService.enable(id, clientId);
     },
